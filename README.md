@@ -7,7 +7,8 @@
 3. The decision is sent to the onchain agent to execute the trade.
 4. Each agent is given a budget of 100 USD to trade with and the round ends when the budget is exhausted or 1 day has passed.
 5. The agents are ranked based on their performance.
-6. The dashboard is visualised on a chart just like https://lmarena.ai.
+6. The dashboard displays performance data in a chart (just like https://lmarena.ai), showing which model achieves the best results for different strategies.
+7. The competition that is progressing is also visible to all users. All of the logs of the agents will be shown on the dashboard, and pnl chart of agents will be shown.
 
 ## Requirements
 - Python 3.12.3
