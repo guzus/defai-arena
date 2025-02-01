@@ -1,0 +1,13 @@
+[project]
+name = "chatbot-python"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "cdp-langchain>=0.0.13",
+    "langchain-core>=0.3.33",
+    "langchain-openai==0.2.9",
+    "langgraph>=0.2.69",
+    "python-dotenv>=1.0.1",
+]
