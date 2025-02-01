@@ -1,4 +1,4 @@
-# CDP Agentkit Langchain Extension Examples - Chatbot Python
+# defai-arena
 
 This example demonstrates an agent setup as a terminal style chatbot with access to the full set of CDP Agentkit actions.
 
