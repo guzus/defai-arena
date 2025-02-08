@@ -9,5 +9,8 @@ dependencies = [
     "langchain-core>=0.3.33",
     "langchain-openai==0.2.9",
     "langgraph>=0.2.69",
+    "matplotlib>=3.10.0",
+    "mplfinance>=0.12.10b0",
+    "pandas>=2.2.3",
     "python-dotenv>=1.0.1",
 ]
