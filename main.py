@@ -9,9 +9,7 @@ from chatbot import initialize_agent
 
 # Dummy function to get latest candle data.
 def fetch_candle_data(symbol):
-    # Replace with your API call / data fetching logic.
     curr_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    # Example candle: you can extend this with real data fields.
     candle_data = (
         f"Timestamp: {curr_time}; Open: 100; High: 110; "
         f"Low: 95; Close: 105; Volume: 1500"
@@ -19,13 +17,13 @@ def fetch_candle_data(symbol):
     return candle_data
 
 # Trading loop for each LLM model.
-def run_trading_mode(agent_executor, config, model_name, interval=300):
+def run_trading_mode(agent_executor, config, model_name, symbol, interval=300):
     print(f"Starting trading mode for {model_name}...")
     # Simulated portfolio for demonstration.
     portfolio = {"cash": 10000, "position": 0}
-    
+    print(symbol)
     while True:
-        candle = fetch_candle_data()
+        candle = fetch_candle_data(symbol)
         prompt = (
             "You are an autonomous trading agent that makes trading decisions every 15 minutes based on candlestick data. "
             "Below is the latest market data:\n\n"
@@ -61,7 +59,7 @@ def run_trading_mode(agent_executor, config, model_name, interval=300):
         time.sleep(interval)
 
 def main():
-    symbol = input("Enter the trading symbol (e.g., BTC-USD): ").strip()
+    # symbol = input("Enter the trading symbol (e.g., BTC-USD): ").strip()
 
     llms = ["OpenAI", "DeepSeek"]
 
@@ -77,14 +75,14 @@ def main():
     for llm_name in llms: 
         for model in models.get(llm_name, []):
             if llm_name == "OpenAI":
-                llm_instance = initialize_agent(ChatOpenAI(model=model))
+                llm_instance = initialize_agent(ChatOpenAI(model=model), thread_id=f"{llm_name}-{model} Trading")
             elif llm_name == "DeepSeek":
-                llm_instance = initialize_agent(ChatDeepSeek(model=model))
+                llm_instance = initialize_agent(ChatDeepSeek(model=model), thread_id=f"{llm_name}-{model} Trading")
             
             # Start a separate thread for each trading agent.
             thread = threading.Thread(
                 target=run_trading_mode,
-                args=(llm_instance, {"configurable": {"thread_id": f"{llm_name}-{model} Trading"}}, f"{llm_name}-{model}"),
+                args=(llm_instance, {"configurable": {"thread_id": f"{llm_name}-{model} Trading"}}, f"{llm_name}-{model}", "BTC-USD"),
                 daemon=True
             )
             trading_threads.append(thread)

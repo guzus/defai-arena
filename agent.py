@@ -1,3 +1,4 @@
+import json
 import os
 from dotenv import load_dotenv
 
@@ -8,17 +9,12 @@ from langgraph.prebuilt import create_react_agent
 from cdp_langchain.agent_toolkits import CdpToolkit
 from cdp_langchain.utils import CdpAgentkitWrapper
 
-wallet_data_file = "wallet_data.txt"
 
 load_dotenv()
 
-def initialize_agent(llm):
+def initialize_agent(llm, thread_id):
     """Initialize the agent with CDP Agentkit."""
-    wallet_data = None
-
-    if os.path.exists(wallet_data_file):
-        with open(wallet_data_file) as f:
-            wallet_data = f.read()
+    wallet_data = None 
 
     # Configure CDP Agentkit Langchain Extension.
     values = {}
@@ -27,19 +23,21 @@ def initialize_agent(llm):
         values = {"cdp_wallet_data": wallet_data}
 
     agentkit = CdpAgentkitWrapper(**values)
-
+    agentkit
     # persist the agent's CDP MPC Wallet Data.
     wallet_data = agentkit.export_wallet()
+    export_wallet_data = wallet_data
+    wallet_data_file = f"wallet_data_{thread_id}.txt"
+
     with open(wallet_data_file, "w") as f:
-        f.write(wallet_data)
+        f.write(export_wallet_data)
 
     # Initialize CDP Agentkit Toolkit and get tools.
     cdp_toolkit = CdpToolkit.from_cdp_agentkit_wrapper(agentkit)
     tools = cdp_toolkit.get_tools()
-
     # Store buffered conversation history in memory.
     memory = MemorySaver()
-    config = {"configurable": {"thread_id": "CDP Agentkit Chatbot Example!"}}
+    config = {"configurable": {"thread_id": thread_id}}
 
     # Create ReAct Agent using the LLM and CDP Agentkit tools.
     return create_react_agent(
