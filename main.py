@@ -27,6 +27,7 @@ def run_trading_mode(agent_executor, config, model_name, token, interval=300):
             f"{candle}\n\n"
             "Based on the above data, please decide whether to BUY, HOLD, or SELL. "
             "Provide a short rationale with your decision, and execute the trade if necessary."
+            "The size of trade is 0.001 ETH."
         )
 
         # For this example, we assume a streaming interface
