@@ -172,6 +172,6 @@ def draw_ohlcv(result: OHLCVResponse):
 
 if __name__ == "__main__":
     # Example usage
-    base_token = "0x52b492a33E447Cdb854c7FC19F1e57E8BfA1777D"
+    base_token = "0x4F9Fd6Be4a90f2620860d680c0d4d5Fb53d1A825"
     result = get_ohlcv(base_token)
     draw_ohlcv(result)

@@ -35,5 +35,6 @@ uv sync
   - "NETWORK_ID" (Defaults to `base-sepolia`)
 
 ```bash
-uv run chatbot.py
+uv run main.py
+uv pip install -qU "langchain[deepseek]"
 ```
