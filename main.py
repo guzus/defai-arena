@@ -71,11 +71,11 @@ def main():
         for model in models.get(llm_name, []):
             if llm_name == "OpenAI":
                 llm_instance = initialize_agent(
-                    ChatOpenAI(model=model), thread_id=f"{llm_name}-{model} Trading"
+                    ChatOpenAI(model=model), thread_id=f"{llm_name}-{model}-Trading"
                 )
             elif llm_name == "DeepSeek":
                 llm_instance = initialize_agent(
-                    ChatDeepSeek(model=model), thread_id=f"{llm_name}-{model} Trading"
+                    ChatDeepSeek(model=model), thread_id=f"{llm_name}-{model}-Trading"
                 )
 
             # Start a separate thread for each trading agent.
@@ -83,7 +83,7 @@ def main():
                 target=run_trading_mode,
                 args=(
                     llm_instance,
-                    {"configurable": {"thread_id": f"{llm_name}-{model} Trading"}},
+                    {"configurable": {"thread_id": f"{llm_name}-{model}-Trading"}},
                     f"{llm_name}-{model}",
                     "0x4F9Fd6Be4a90f2620860d680c0d4d5Fb53d1A825",  # AIXBT
                 ),
