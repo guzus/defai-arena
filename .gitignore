@@ -1,3 +1,5 @@
 .venv/
 wallet_data.txt
 .env
+__pycache__/
+*.txt
