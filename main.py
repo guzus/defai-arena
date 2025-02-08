@@ -21,7 +21,7 @@ def run_trading_mode(agent_executor, config, model_name, token, interval=300):
     while True:
         result = get_ohlcv(token)
         candle = result
-    
+
         prompt = (
             "You are an autonomous trading agent that makes trading decisions every 15 minutes based on candlestick data. "
             "Below is the latest market data:\n\n"
@@ -41,17 +41,7 @@ def run_trading_mode(agent_executor, config, model_name, token, interval=300):
                 decisions.append(decision)
                 print(f"[{model_name}] decision: {decision}")
 
-        # Here, update your simulated portfolio based on the decision.
-        # For example, a simple simulation might be:
-        # if "BUY" in decision.upper():
-        #     portfolio["position"] = portfolio["cash"] / current_price
-        #     portfolio["cash"] = 0
-        # elif "SELL" in decision.upper():
-        #     portfolio["cash"] = portfolio["position"] * current_price
-        #     portfolio["position"] = 0
-        # (current_price can be extracted from candle data e.g. CDP "Close" price)
-
-        print(f"[{model_name}] current simulated portfolio: {portfolio}")
+        # print(f"[{model_name}] current simulated portfolio: {portfolio}")
         print("--------------------------------------------------")
 
         time.sleep(interval)
