@@ -85,7 +85,7 @@ def main():
     # Keep the main thread alive so trading threads can run.
     try:
         while True:
-            time.sleep(300)
+            time.sleep(5)
     except KeyboardInterrupt:
         print("Exiting trading application.")
 
