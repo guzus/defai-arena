@@ -6,7 +6,7 @@ from langchain_anthropic import ChatAnthropic
 
 from langchain_core.messages import HumanMessage
 
-from chatbot import initialize_agent
+from agent import initialize_agent
 from ohlcv import get_ohlcv
 
 

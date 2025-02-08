@@ -32,9 +32,12 @@ uv sync
   - "CDP_API_KEY_NAME"
   - "CDP_API_KEY_PRIVATE_KEY"
   - "OPENAI_API_KEY"
+  - "ANTHROPIC_API_KEY"
   - "NETWORK_ID" (Defaults to `base-sepolia`)
 
 ```bash
 uv run main.py
-uv pip install -qU "langchain[deepseek]"
+uv pip install -qU "langchain[openai]"
+uv pip install -qU "langchain[anthropic]"
+
 ```
