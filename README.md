@@ -1,6 +1,6 @@
 # defai-arena
 
-![defai-arena](assets/defai-arena.webp)
+<img src="assets/defai-arena.webp" alt="defai-arena" width="800"/>
 
 Open platform for crowdsourced LLM benchmarking tailored for DeFAI applications
 
@@ -23,21 +23,15 @@ Open platform for crowdsourced LLM benchmarking tailored for DeFAI applications
 ## Installation
 ```bash
 uv sync
+uv pip install -qU "langchain[openai]"
+uv pip install -qU "langchain[anthropic]"
 ```
 
-## Run the Chatbot
-
 ### Set ENV Vars
-- Ensure the following ENV Vars are set:
-  - "CDP_API_KEY_NAME"
-  - "CDP_API_KEY_PRIVATE_KEY"
-  - "OPENAI_API_KEY"
-  - "ANTHROPIC_API_KEY"
-  - "NETWORK_ID" (Defaults to `base-sepolia`)
+- Ensure ENV Vars are set (refer to .env.example)
+
+## Run the bot
 
 ```bash
 uv run main.py
-uv pip install -qU "langchain[openai]"
-uv pip install -qU "langchain[anthropic]"
-
 ```

@@ -17,7 +17,6 @@ def fetch_candle_data(token: str):
 # Trading loop for each LLM model.
 def run_trading_mode(agent_executor, config, model_name, token, interval=300):
 
-    portfolio = {"cash": 10000, "position": 0}
     while True:
         result = get_ohlcv(token)
         candle = result
@@ -52,6 +51,8 @@ def main():
 
     models = {"OpenAI": ["gpt-4o-mini"], "Anthropic": ["claude-3-5-sonnet-20240620"]}
 
+    token = "0x4F9Fd6Be4a90f2620860d680c0d4d5Fb53d1A825"  # AIXBT
+
     # Create a list to store trading threads.
     trading_threads = []
 
@@ -74,7 +75,7 @@ def main():
                     llm_instance,
                     {"configurable": {"thread_id": f"{llm_name}-{model}-Trading"}},
                     f"{llm_name}-{model}",
-                    "0x4F9Fd6Be4a90f2620860d680c0d4d5Fb53d1A825",  # AIXBT
+                    token,
                 ),
                 daemon=True,
             )
