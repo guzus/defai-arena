@@ -26,7 +26,7 @@ def run_trading_mode(agent_executor, config, model_name, token, interval=300):
             "Below is the latest market data:\n\n"
             f"{candle}\n\n"
             "Based on the above data, please decide whether to BUY, HOLD, or SELL. "
-            "Provide a short rationale with your decision."
+            "Provide a short rationale with your decision, and execute the trade if necessary."
         )
 
         # For this example, we assume a streaming interface
