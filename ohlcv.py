@@ -5,6 +5,9 @@ from dotenv import load_dotenv
 from dataclasses import dataclass
 from typing import List
 from datetime import datetime
+import matplotlib.pyplot as plt
+import mplfinance as mpf
+import pandas as pd
 
 load_dotenv()
 
@@ -69,10 +72,10 @@ def get_ohlcv(base_token: str, quote_token: str = WETH) -> OHLCVResponse:
               PriceAsymmetry: {lt: 0.1}
             }
           }
-          limit: {count: 10}
+          limit: {count: 100}
         ) {
           Block {
-            testfield: Time(interval: {in: hours, count: 1})
+            testfield: Time(interval: {in: minutes, count: 5})
           }
           volume: sum(of: Trade_Amount)
           Trade {
@@ -129,14 +132,46 @@ def get_ohlcv(base_token: str, quote_token: str = WETH) -> OHLCVResponse:
     )
 
 
+def draw_ohlcv(result: OHLCVResponse):
+    data = {
+        "Date": [trade.Block.testfield for trade in result.data.DEXTradeByTokens],
+        "Open": [trade.Trade.open for trade in result.data.DEXTradeByTokens],
+        "High": [trade.Trade.high for trade in result.data.DEXTradeByTokens],
+        "Low": [trade.Trade.low for trade in result.data.DEXTradeByTokens],
+        "Close": [trade.Trade.close for trade in result.data.DEXTradeByTokens],
+        "Volume": [float(trade.volume) for trade in result.data.DEXTradeByTokens],
+    }
+
+    df = pd.DataFrame(data)
+    df.set_index("Date", inplace=True)
+    df.sort_index(inplace=True)  # Sort by date
+
+    # Create the OHLCV chart
+    fig, (ax1, ax2) = plt.subplots(
+        2, 1, figsize=(12, 8), gridspec_kw={"height_ratios": [3, 1]}
+    )
+
+    # Plot candlesticks - use addplot instead of plot
+    ap = mpf.make_addplot(df[["Open", "High", "Low", "Close"]], type="candle", ax=ax1)
+    mpf.plot(df, type="candle", style="charles", addplot=ap, ax=ax1, volume=False)
+    ax1.set_title("OHLCV Chart")
+
+    # Plot volume bars
+    ax2.bar(df.index, df["Volume"], color="gray", alpha=0.5)
+    ax2.set_ylabel("Volume")
+
+    # Rotate x-axis labels for better readability
+    plt.xticks(rotation=45)
+
+    # Adjust layout to prevent label cutoff
+    plt.tight_layout()
+
+    # Show the plot
+    plt.show()
+
+
 if __name__ == "__main__":
     # Example usage
     base_token = "0x52b492a33E447Cdb854c7FC19F1e57E8BfA1777D"
     result = get_ohlcv(base_token)
-
-    for trade in result.data.DEXTradeByTokens:
-        print(f"Time: {trade.Block.testfield}")
-        print(f"High: {trade.Trade.high}")
-        print(f"Low: {trade.Trade.low}")
-        print(f"Volume: {trade.volume}")
-        print("---")
+    draw_ohlcv(result)
