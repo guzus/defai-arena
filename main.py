@@ -49,7 +49,7 @@ def run_trading_mode(agent_executor, config, model_name, token, interval=300):
 def main():
     llms = ["OpenAI", "Anthropic"]
 
-    models = {"OpenAI": ["gpt-4o-mini"], "Anthropic": ["claude-3-5-sonnet-20240620"]}
+    models = {"OpenAI": ["gpt-4o-mini"], "Anthropic": ["claude-3-5-haiku-latest"]}
 
     token = "0x4F9Fd6Be4a90f2620860d680c0d4d5Fb53d1A825"  # AIXBT
 
