@@ -23,7 +23,7 @@ def initialize_agent(llm, thread_id):
         values = {"cdp_wallet_data": wallet_data}
 
     agentkit = CdpAgentkitWrapper(**values)
-    agentkit
+
     # persist the agent's CDP MPC Wallet Data.
     wallet_data = agentkit.export_wallet()
     export_wallet_data = wallet_data

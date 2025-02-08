@@ -2,7 +2,8 @@ import time
 import threading
 
 from langchain_openai import ChatOpenAI
-from langchain_deepseek import ChatDeepSeek
+from langchain_anthropic import ChatAnthropic
+
 from langchain_core.messages import HumanMessage
 
 from chatbot import initialize_agent
@@ -15,12 +16,12 @@ def fetch_candle_data(token: str):
 
 # Trading loop for each LLM model.
 def run_trading_mode(agent_executor, config, model_name, token, interval=300):
-    print(f"Starting trading mode for {model_name}...")
-    # Simulated portfolio for demonstration.
+
     portfolio = {"cash": 10000, "position": 0}
-    print(token)
     while True:
-        candle = fetch_candle_data(token)
+        result = get_ohlcv(token)
+        candle = result
+    
         prompt = (
             "You are an autonomous trading agent that makes trading decisions every 15 minutes based on candlestick data. "
             "Below is the latest market data:\n\n"
@@ -57,11 +58,9 @@ def run_trading_mode(agent_executor, config, model_name, token, interval=300):
 
 
 def main():
-    # symbol = input("Enter the trading symbol (e.g., BTC-USD): ").strip()
+    llms = ["OpenAI", "Anthropic"]
 
-    llms = ["OpenAI", "DeepSeek"]
-
-    models = {"OpenAI": ["gpt-4o-mini"], "DeepSeek": ["deepseek-chat"]}
+    models = {"OpenAI": ["gpt-4o-mini"], "Anthropic": ["claude-3-5-sonnet-20240620"]}
 
     # Create a list to store trading threads.
     trading_threads = []
@@ -70,12 +69,12 @@ def main():
     for llm_name in llms:
         for model in models.get(llm_name, []):
             if llm_name == "OpenAI":
-                llm_instance = initialize_agent(
+                llm_instance, conf = initialize_agent(
                     ChatOpenAI(model=model), thread_id=f"{llm_name}-{model}-Trading"
                 )
-            elif llm_name == "DeepSeek":
-                llm_instance = initialize_agent(
-                    ChatDeepSeek(model=model), thread_id=f"{llm_name}-{model}-Trading"
+            elif llm_name == "Anthropic":
+                llm_instance, conf = initialize_agent(
+                    ChatAnthropic(model=model), thread_id=f"{llm_name}-{model}-Trading"
                 )
 
             # Start a separate thread for each trading agent.
