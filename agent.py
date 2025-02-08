@@ -15,6 +15,14 @@ load_dotenv()
 def initialize_agent(llm, thread_id):
     """Initialize the agent with CDP Agentkit."""
     wallet_data = None 
+    wallet_data_file = f"wallet_data_{thread_id}.txt"
+
+    if os.path.exists(wallet_data_file):
+        with open(wallet_data_file, "r") as f:
+            wallet_data = f.read()
+        # print(f"[{thread_id}]: {wallet_data}")
+    else:
+        print(f"[{thread_id}]: load failed.")
 
     # Configure CDP Agentkit Langchain Extension.
     values = {}
@@ -45,7 +53,7 @@ def initialize_agent(llm, thread_id):
         tools=tools,
         checkpointer=memory,
         state_modifier=(
-           "You are a helpful agent that can interact onchain using the Coinbase Developer Platform AgentKit. "
+            "You are a helpful agent that can interact onchain using the Coinbase Developer Platform AgentKit. "
             "You are empowered to interact onchain using your tools. If you ever need funds, you can request "
             "them from the faucet if you are on network ID 'base-sepolia'. If not, you can provide your wallet "
             "details and request funds from the user. Before executing your first action, get the wallet details"
