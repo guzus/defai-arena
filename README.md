@@ -59,6 +59,8 @@ Outputs to `ohlcv_chart.png`
 uv run ohlcv.py
 ```
 
-Example output:
+The data will be delivered to agents.
+
+Example output (`AIXBT/WETH`):
 
 <img src="assets/ohlcv_chart.png" alt="ohlcv_chart" width="600"/>
