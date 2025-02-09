@@ -8,12 +8,19 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import mplfinance as mpf
 import pandas as pd
+import threading
+import time
+import logging
 
 load_dotenv()
 
 url = "https://streaming.bitquery.io/graphql"
 BITQURERY_TOKEN = os.getenv("BITQURERY_TOKEN")
 WETH = "0x4200000000000000000000000000000000000006"
+
+# Global cache for OHLCV data
+ohlcv_cache = {}
+ohlcv_cache_lock = threading.Lock()
 
 
 @dataclass
@@ -191,6 +198,79 @@ def draw_ohlcv(result: OHLCVResponse, output_file: str = "ohlcv_chart.png"):
     # Save the plot to a file instead of showing it
     plt.savefig(output_file)
     plt.close()  # Close the figure to free memory
+
+
+# Compress is required to fit the prompt into the context window.
+def compress_ohlcv_data(ohlcv_response: OHLCVResponse):
+    """Compress OHLCV data to a more concise format"""
+    if not ohlcv_response or not ohlcv_response.data.DEXTradeByTokens:
+        return "No data available"
+
+    # Get last 20 trades
+    recent_trades = ohlcv_response.data.DEXTradeByTokens[-20:]
+
+    compressed_data = []
+    for trade in recent_trades:
+        timestamp = trade.Block.testfield
+        compressed_data.append(
+            f"Time: {timestamp.strftime('%H:%M:%S')}, "
+            f"O: {trade.Trade.open}, "
+            f"H: {trade.Trade.high}, "
+            f"L: {trade.Trade.low}, "
+            f"C: {trade.Trade.close}, "
+            f"V: {trade.volume}"
+        )
+
+    return "\n".join(compressed_data)
+
+
+def update_ohlcv_cache(
+    token: str, interval=5 * 60, limit: int = 100, small_limit: int = 10
+):
+    # Track the latest fetched timestamp per token
+    last_timestamp = None
+    while True:
+        try:
+            # Only fetch new data if we have a last timestamp
+            data = (
+                get_ohlcv(token, limit=small_limit)
+                if last_timestamp
+                else get_ohlcv(token, limit=limit)
+            )
+            logging.info(f"Fetched OHLCV data")
+            if data.data.DEXTradeByTokens:
+                # Assume that the API orders trades descending, so the first one is the latest trade.
+                latest_trade_time = data.data.DEXTradeByTokens[0].Block.testfield
+                last_timestamp = latest_trade_time
+
+                with ohlcv_cache_lock:
+                    # Merge new data into the cache if it exists. Here we deduplicate based on the timestamp.
+                    if token in ohlcv_cache:
+                        old_trades = ohlcv_cache[token].data.DEXTradeByTokens
+                        # Build a dict using timestamp as key for deduplication
+                        trades_dict = {
+                            trade.Block.testfield: trade for trade in old_trades
+                        }
+                        for trade in data.data.DEXTradeByTokens:
+                            trades_dict[trade.Block.testfield] = trade
+                        merged_trades = sorted(
+                            trades_dict.values(), key=lambda t: t.Block.testfield
+                        )
+                        ohlcv_cache[token] = OHLCVResponse(
+                            data=EVM(DEXTradeByTokens=merged_trades)
+                        )
+                    else:
+                        ohlcv_cache[token] = data
+                logging.info(f"Updated OHLCV cache for {token}")
+        except Exception as e:
+            logging.error(f"Error updating OHLCV cache: {e}")
+        time.sleep(interval)
+
+
+def get_ohlcv_cached(token: str):
+    """Get OHLCV data from cache"""
+    with ohlcv_cache_lock:
+        return ohlcv_cache.get(token)
 
 
 if __name__ == "__main__":

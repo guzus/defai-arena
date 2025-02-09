@@ -7,8 +7,7 @@ from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage
 
 from agent import initialize_agent
-from ohlcv import get_ohlcv, OHLCVResponse, EVM
-from datetime import datetime
+from ohlcv import get_ohlcv_cached, compress_ohlcv_data, update_ohlcv_cache
 import logging
 
 # Create console handler
@@ -35,80 +34,6 @@ root_logger.addHandler(file_handler)
 
 # Suppress httpx logs
 logging.getLogger("httpx").setLevel(logging.WARNING)
-
-# Global cache for OHLCV data
-ohlcv_cache = {}
-ohlcv_cache_lock = threading.Lock()
-
-
-def update_ohlcv_cache(
-    token: str, interval=5 * 60, limit: int = 100, small_limit: int = 10
-):
-    # Track the latest fetched timestamp per token
-    last_timestamp = None
-    while True:
-        try:
-            # Only fetch new data if we have a last timestamp
-            data = (
-                get_ohlcv(token, limit=small_limit)
-                if last_timestamp
-                else get_ohlcv(token, limit=limit)
-            )
-            logging.info(f"Fetched OHLCV data")
-            if data.data.DEXTradeByTokens:
-                # Assume that the API orders trades descending, so the first one is the latest trade.
-                latest_trade_time = data.data.DEXTradeByTokens[0].Block.testfield
-                last_timestamp = latest_trade_time
-
-                with ohlcv_cache_lock:
-                    # Merge new data into the cache if it exists. Here we deduplicate based on the timestamp.
-                    if token in ohlcv_cache:
-                        old_trades = ohlcv_cache[token].data.DEXTradeByTokens
-                        # Build a dict using timestamp as key for deduplication
-                        trades_dict = {
-                            trade.Block.testfield: trade for trade in old_trades
-                        }
-                        for trade in data.data.DEXTradeByTokens:
-                            trades_dict[trade.Block.testfield] = trade
-                        merged_trades = sorted(
-                            trades_dict.values(), key=lambda t: t.Block.testfield
-                        )
-                        ohlcv_cache[token] = OHLCVResponse(
-                            data=EVM(DEXTradeByTokens=merged_trades)
-                        )
-                    else:
-                        ohlcv_cache[token] = data
-                logging.info(f"Updated OHLCV cache for {token}")
-        except Exception as e:
-            logging.error(f"Error updating OHLCV cache: {e}")
-        time.sleep(interval)
-
-
-# Compress is required to fit the prompt into the context window.
-def compress_ohlcv_data(ohlcv_response):
-    """Compress OHLCV data to a more concise format"""
-    if not ohlcv_response or not ohlcv_response.data.DEXTradeByTokens:
-        return "No data available"
-
-    # Get last 20 trades
-    recent_trades = ohlcv_response.data.DEXTradeByTokens[-20:]
-
-    compressed_data = []
-    for trade in recent_trades:
-        timestamp = datetime.fromtimestamp(trade.Block.testfield)
-        compressed_data.append(
-            f"Time: {timestamp.strftime('%H:%M:%S')}, "
-            f"Price: {trade.price:.8f}, "
-            f"Volume: {trade.volume:.4f}"
-        )
-
-    return "\n".join(compressed_data)
-
-
-def get_ohlcv_cached(token: str):
-    """Get OHLCV data from cache"""
-    with ohlcv_cache_lock:
-        return ohlcv_cache.get(token)
 
 
 # Trading loop for each LLM model.
