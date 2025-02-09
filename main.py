@@ -84,6 +84,27 @@ def update_ohlcv_cache(
         time.sleep(interval)
 
 
+# Compress is required to fit the prompt into the context window.
+def compress_ohlcv_data(ohlcv_response):
+    """Compress OHLCV data to a more concise format"""
+    if not ohlcv_response or not ohlcv_response.data.DEXTradeByTokens:
+        return "No data available"
+
+    # Get last 20 trades
+    recent_trades = ohlcv_response.data.DEXTradeByTokens[-20:]
+
+    compressed_data = []
+    for trade in recent_trades:
+        timestamp = datetime.fromtimestamp(trade.Block.testfield)
+        compressed_data.append(
+            f"Time: {timestamp.strftime('%H:%M:%S')}, "
+            f"Price: {trade.price:.8f}, "
+            f"Volume: {trade.volume:.4f}"
+        )
+
+    return "\n".join(compressed_data)
+
+
 def get_ohlcv_cached(token: str):
     """Get OHLCV data from cache"""
     with ohlcv_cache_lock:
@@ -94,17 +115,16 @@ def get_ohlcv_cached(token: str):
 def run_trading_mode(agent_executor, config, model_name, token, interval=5 * 60):
 
     while True:
-        result = get_ohlcv_cached(token)
-        candle = result
-
+        candle = get_ohlcv_cached(token)
+        compressed_candle = compress_ohlcv_data(candle)
         prompt = (
             "You are an autonomous trading agent that makes trading decisions every 5 minutes based on candlestick data. "
             "Below is the latest market data:\n\n"
             f"token: {token}\n\n"
-            f"{candle}\n\n"
+            f"{compressed_candle}\n\n"
             "Based on the above data, please decide whether to BUY, HOLD, or SELL. "
             "Provide a short rationale with your decision, and execute the trade if necessary."
-            "The size of trade is 0.001 ETH."
+            "The size of trade is 0.001 ETH worth of a token."
         )
 
         # For this example, we assume a streaming interface
