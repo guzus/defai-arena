@@ -11,7 +11,12 @@ from ohlcv import get_ohlcv, OHLCVResponse, EVM
 from datetime import datetime
 import logging
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    filename="app.log",
+    filemode="a",
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
 
 # Global cache for OHLCV data
 ohlcv_cache = {}
