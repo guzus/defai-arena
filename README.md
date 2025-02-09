@@ -43,8 +43,8 @@ Example actions of each agent:
 
 | Model            | Example                                                                                     |
 | ---------------- | ------------------------------------------------------------------------------------------- |
-| Claude 3.5 Haiku | <img src="assets/claude-3.5-haiku-example.png" alt="claude-3.5-haiku-example" width="400"/> |
-| GPT 4o Mini      | <img src="assets/gpt-4o-mini-example.png" alt="gpt-4o-mini-example" width="400"/>           |
+| Claude 3.5 Haiku | <img src="assets/claude-3.5-haiku-example.png" alt="claude-3.5-haiku-example" width="600"/> |
+| GPT 4o Mini      | <img src="assets/gpt-4o-mini-example.png" alt="gpt-4o-mini-example" width="600"/>           |
 
 ## Draw a OHLCV chart
 
@@ -53,3 +53,7 @@ Outputs to `ohlcv_chart.png`
 ```bash
 uv run ohlcv.py
 ```
+
+Example output:
+
+<img src="assets/ohlcv_chart.png" alt="ohlcv_chart" width="600"/>
