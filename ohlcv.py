@@ -56,37 +56,29 @@ def get_ohlcv(
     base_token: str,
     quote_token: str = WETH,
     limit: int = 100,
-    since: Optional[datetime] = None,
 ) -> OHLCVResponse:
-    # Build the "where" clause conditions
-    where_conditions = [
-        (
-            "Trade: {"
-            "Currency: {"
-            'SmartContract: { is: "' + base_token + '" }'
-            "} "
-            "Side: {"
-            "Currency: {"
-            'SmartContract: { is: "' + quote_token + '" }'
-            "} "
-            "Type: { is: buy }"
-            "} "
-            "PriceAsymmetry: { lt: 0.1 }"
-            "}"
-        )
-    ]
-    if since is not None:
-        # Ensure the timestamp is in ISO format (the Bitquery API expects ISO8601)
-        since_str = since.isoformat()
-        where_conditions.append('Block: { testfield: { gt: "' + since_str + '" } }')
-    where_clause = ", ".join(where_conditions)
+    # Build the where clause without list wrapping
+    where_condition = (
+        "Trade: {"
+        "Currency: {"
+        f'SmartContract: {{ is: "{base_token}" }}'
+        "} "
+        "Side: {"
+        "Currency: {"
+        f'SmartContract: {{ is: "{quote_token}" }}'
+        "} "
+        "Type: { is: buy }"
+        "} "
+        "PriceAsymmetry: { lt: 0.1 }"
+        "}"
+    )
 
     query = f"""
     {{
       EVM(network: base, dataset: archive) {{
         DEXTradeByTokens(
           orderBy: {{ descendingByField: "Block_testfield" }}
-          where: {{ {where_clause} }}
+          where: {{ {where_condition} }}
           limit: {{ count: {limit} }}
         ) {{
           Block {{
@@ -119,6 +111,24 @@ def get_ohlcv(
 
     json_data = response.json()
 
+    # Add error checking for the response structure
+    if not json_data or "data" not in json_data:
+        raise Exception("Invalid response format: missing 'data' field")
+
+    if not json_data["data"] or "EVM" not in json_data["data"]:
+        raise Exception("Invalid response format: missing 'EVM' field")
+
+    if (
+        not json_data["data"]["EVM"]
+        or "DEXTradeByTokens" not in json_data["data"]["EVM"]
+    ):
+        raise Exception("Invalid response format: missing 'DEXTradeByTokens' field")
+
+    dex_trades = json_data["data"]["EVM"]["DEXTradeByTokens"]
+    if not dex_trades:
+        # Return empty response if no trades found
+        return OHLCVResponse(data=EVM(DEXTradeByTokens=[]))
+
     # Convert the JSON response to our dataclass structure
     return OHLCVResponse(
         data=EVM(
@@ -138,7 +148,7 @@ def get_ohlcv(
                     count=item["count"],
                     volume=item["volume"],
                 )
-                for item in json_data["data"]["EVM"]["DEXTradeByTokens"]
+                for item in dex_trades
             ]
         )
     )

@@ -41,17 +41,20 @@ ohlcv_cache = {}
 ohlcv_cache_lock = threading.Lock()
 
 
-def update_ohlcv_cache(token: str, interval=5 * 60, limit: int = 100):
+def update_ohlcv_cache(
+    token: str, interval=1 * 60, limit: int = 100, small_limit: int = 10
+):
     # Track the latest fetched timestamp per token
     last_timestamp = None
     while True:
         try:
             # Only fetch new data if we have a last timestamp
             data = (
-                get_ohlcv(token, limit=limit, since=last_timestamp)
+                get_ohlcv(token, limit=small_limit)
                 if last_timestamp
                 else get_ohlcv(token, limit=limit)
             )
+            logging.info(f"Fetched OHLCV data")
             if data.data.DEXTradeByTokens:
                 # Assume that the API orders trades descending, so the first one is the latest trade.
                 latest_trade_time = data.data.DEXTradeByTokens[0].Block.testfield
