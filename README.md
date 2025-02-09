@@ -41,11 +41,10 @@ uv run main.py
 
 Example actions of each agent:
 
-- Claude 3.5 Haiku
-  <img src="assets/claude-3.5-haiku-example.png" alt="claude-3.5-haiku-example" width="400"/>
-
-- GPT 4o Mini
-  <img src="assets/gpt-4o-mini-example.png" alt="gpt-4o-mini-example" width="400"/>
+| Model            | Example                                                                                     |
+| ---------------- | ------------------------------------------------------------------------------------------- |
+| Claude 3.5 Haiku | <img src="assets/claude-3.5-haiku-example.png" alt="claude-3.5-haiku-example" width="400"/> |
+| GPT 4o Mini      | <img src="assets/gpt-4o-mini-example.png" alt="gpt-4o-mini-example" width="400"/>           |
 
 ## Draw a OHLCV chart
 
