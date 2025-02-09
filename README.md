@@ -1,6 +1,6 @@
 # defai-arena
 
-<img src="assets/defai-arena.webp" alt="defai-arena" width="800"/>
+<img src="assets/defai-arena.webp" alt="defai-arena" width="400"/>
 
 Open platform for crowdsourced LLM benchmarking tailored for DeFAI applications
 
