@@ -9,21 +9,40 @@ from langchain_core.messages import HumanMessage
 from agent import initialize_agent
 from ohlcv import get_ohlcv
 
+# Global cache for OHLCV data
+ohlcv_cache = {}
+ohlcv_cache_lock = threading.Lock()
 
-def fetch_candle_data(token: str):
-    return get_ohlcv(token)
+
+def update_ohlcv_cache(token: str, interval=5 * 60):
+    """Background thread function to continuously update OHLCV cache"""
+    while True:
+        try:
+            data = get_ohlcv(token)
+            with ohlcv_cache_lock:
+                ohlcv_cache[token] = data
+        except Exception as e:
+            print(f"Error updating OHLCV cache: {e}")
+        time.sleep(interval)
+
+
+def get_ohlcv_cached(token: str):
+    """Get OHLCV data from cache"""
+    with ohlcv_cache_lock:
+        return ohlcv_cache.get(token)
 
 
 # Trading loop for each LLM model.
-def run_trading_mode(agent_executor, config, model_name, token, interval=300):
+def run_trading_mode(agent_executor, config, model_name, token, interval=5 * 60):
 
     while True:
-        result = get_ohlcv(token)
+        result = get_ohlcv_cached(token)
         candle = result
 
         prompt = (
-            "You are an autonomous trading agent that makes trading decisions every 15 minutes based on candlestick data. "
+            "You are an autonomous trading agent that makes trading decisions every 5 minutes based on candlestick data. "
             "Below is the latest market data:\n\n"
+            f"token: {token}\n\n"
             f"{candle}\n\n"
             "Based on the above data, please decide whether to BUY, HOLD, or SELL. "
             "Provide a short rationale with your decision, and execute the trade if necessary."
@@ -53,6 +72,12 @@ def main():
     models = {"OpenAI": ["gpt-4o-mini"], "Anthropic": ["claude-3-5-haiku-latest"]}
 
     token = "0x4F9Fd6Be4a90f2620860d680c0d4d5Fb53d1A825"  # AIXBT
+
+    # Start OHLCV cache update thread
+    ohlcv_thread = threading.Thread(
+        target=update_ohlcv_cache, args=(token,), daemon=True
+    )
+    ohlcv_thread.start()
 
     # Create a list to store trading threads.
     trading_threads = []
