@@ -1,7 +1,7 @@
 import json
 import os
 from dotenv import load_dotenv
-
+import logging
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 
@@ -14,7 +14,7 @@ load_dotenv()
 
 
 def initialize_agent(llm, thread_id):
-    print(f"[{thread_id}]: Initializing agent...")
+    logging.info(f"[{thread_id}]: Initializing agent...")
 
     private_key = os.getenv(f"{thread_id}_PRIVATE_KEY")
 

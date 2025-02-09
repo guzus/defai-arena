@@ -7,22 +7,53 @@ from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage
 
 from agent import initialize_agent
-from ohlcv import get_ohlcv
+from ohlcv import get_ohlcv, OHLCVResponse, EVM
+from datetime import datetime
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 # Global cache for OHLCV data
 ohlcv_cache = {}
 ohlcv_cache_lock = threading.Lock()
 
 
-def update_ohlcv_cache(token: str, interval=5 * 60):
-    """Background thread function to continuously update OHLCV cache"""
+def update_ohlcv_cache(token: str, interval=5 * 60, limit: int = 100):
+    # Track the latest fetched timestamp per token
+    last_timestamp = None
     while True:
         try:
-            data = get_ohlcv(token)
-            with ohlcv_cache_lock:
-                ohlcv_cache[token] = data
+            # Only fetch new data if we have a last timestamp
+            data = (
+                get_ohlcv(token, limit=limit, since=last_timestamp)
+                if last_timestamp
+                else get_ohlcv(token, limit=limit)
+            )
+            if data.data.DEXTradeByTokens:
+                # Assume that the API orders trades descending, so the first one is the latest trade.
+                latest_trade_time = data.data.DEXTradeByTokens[0].Block.testfield
+                last_timestamp = latest_trade_time
+
+                with ohlcv_cache_lock:
+                    # Merge new data into the cache if it exists. Here we deduplicate based on the timestamp.
+                    if token in ohlcv_cache:
+                        old_trades = ohlcv_cache[token].data.DEXTradeByTokens
+                        # Build a dict using timestamp as key for deduplication
+                        trades_dict = {
+                            trade.Block.testfield: trade for trade in old_trades
+                        }
+                        for trade in data.data.DEXTradeByTokens:
+                            trades_dict[trade.Block.testfield] = trade
+                        merged_trades = sorted(
+                            trades_dict.values(), key=lambda t: t.Block.testfield
+                        )
+                        ohlcv_cache[token] = OHLCVResponse(
+                            data=EVM(DEXTradeByTokens=merged_trades)
+                        )
+                    else:
+                        ohlcv_cache[token] = data
         except Exception as e:
-            print(f"Error updating OHLCV cache: {e}")
+            logging.error(f"Error updating OHLCV cache: {e}")
         time.sleep(interval)
 
 
@@ -58,10 +89,10 @@ def run_trading_mode(agent_executor, config, model_name, token, interval=5 * 60)
             if "agent" in chunk and chunk["agent"]["messages"]:
                 decision = chunk["agent"]["messages"][0].content
                 decisions.append(decision)
-                print(f"[{model_name}] decision: {decision}")
+                logging.info(f"[{model_name}] decision: {decision}")
 
         # print(f"[{model_name}] current simulated portfolio: {portfolio}")
-        print("--------------------------------------------------")
+        logging.info("--------------------------------------------------")
 
         time.sleep(interval)
 
@@ -72,6 +103,8 @@ def main():
     models = {"OpenAI": ["gpt-4o-mini"], "Anthropic": ["claude-3-5-haiku-latest"]}
 
     token = "0x4F9Fd6Be4a90f2620860d680c0d4d5Fb53d1A825"  # AIXBT
+
+    logging.info(f"Starting trading for token: {token}")
 
     # Start OHLCV cache update thread
     ohlcv_thread = threading.Thread(
@@ -113,7 +146,7 @@ def main():
         while True:
             time.sleep(5)
     except KeyboardInterrupt:
-        print("Exiting trading application.")
+        logging.info("Exiting trading application.")
 
 
 if __name__ == "__main__":

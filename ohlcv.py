@@ -3,7 +3,7 @@ import json
 import os
 from dotenv import load_dotenv
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 import matplotlib.pyplot as plt
 import mplfinance as mpf
@@ -52,46 +52,58 @@ class OHLCVResponse:
     data: EVM
 
 
-def get_ohlcv(base_token: str, quote_token: str = WETH) -> OHLCVResponse:
-    query = """
-    {
-      EVM(network: base, dataset: archive) {
+def get_ohlcv(
+    base_token: str,
+    quote_token: str = WETH,
+    limit: int = 100,
+    since: Optional[datetime] = None,
+) -> OHLCVResponse:
+    # Build the "where" clause conditions
+    where_conditions = [
+        (
+            "Trade: {"
+            "Currency: {"
+            'SmartContract: { is: "' + base_token + '" }'
+            "} "
+            "Side: {"
+            "Currency: {"
+            'SmartContract: { is: "' + quote_token + '" }'
+            "} "
+            "Type: { is: buy }"
+            "} "
+            "PriceAsymmetry: { lt: 0.1 }"
+            "}"
+        )
+    ]
+    if since is not None:
+        # Ensure the timestamp is in ISO format (the Bitquery API expects ISO8601)
+        since_str = since.isoformat()
+        where_conditions.append('Block: { testfield: { gt: "' + since_str + '" } }')
+    where_clause = ", ".join(where_conditions)
+
+    query = f"""
+    {{
+      EVM(network: base, dataset: archive) {{
         DEXTradeByTokens(
-          orderBy: {descendingByField: "Block_testfield"}
-          where: {
-            Trade: {
-              Currency: {
-                SmartContract: {is: "%s"}
-              }
-              Side: {
-                Currency: {
-                  SmartContract: {is: "%s"}
-                }
-                Type: {is: buy}
-              }
-              PriceAsymmetry: {lt: 0.1}
-            }
-          }
-          limit: {count: 100}
-        ) {
-          Block {
-            testfield: Time(interval: {in: minutes, count: 5})
-          }
+          orderBy: {{ descendingByField: "Block_testfield" }}
+          where: {{ {where_clause} }}
+          limit: {{ count: {limit} }}
+        ) {{
+          Block {{
+            testfield: Time(interval: {{ in: minutes, count: 5 }})
+          }}
           volume: sum(of: Trade_Amount)
-          Trade {
+          Trade {{
             high: Price(maximum: Trade_Price)
             low: Price(minimum: Trade_Price)
             open: Price(minimum: Block_Number)
             close: Price(maximum: Block_Number)
-          }
+          }}
           count
-        }
-      }
-    }
-    """ % (
-        base_token,
-        quote_token,
-    )
+        }}
+      }}
+    }}
+    """
 
     payload = json.dumps({"query": query, "variables": "{}"})
 
@@ -103,11 +115,11 @@ def get_ohlcv(base_token: str, quote_token: str = WETH) -> OHLCVResponse:
     response = requests.request("POST", url, headers=headers, data=payload)
 
     if response.status_code != 200:
-        raise Exception(f"Failed to get OHLCV: {response.status_code}")
+        raise Exception(f"Failed to get OHLCV: {response.status_code}, {response.text}")
 
     json_data = response.json()
 
-    # Convert the JSON response to dataclass
+    # Convert the JSON response to our dataclass structure
     return OHLCVResponse(
         data=EVM(
             DEXTradeByTokens=[
@@ -151,7 +163,7 @@ def draw_ohlcv(result: OHLCVResponse):
         2, 1, figsize=(12, 8), gridspec_kw={"height_ratios": [3, 1]}
     )
 
-    # Plot candlesticks - use addplot instead of plot
+    # Plot candlesticks
     ap = mpf.make_addplot(df[["Open", "High", "Low", "Close"]], type="candle", ax=ax1)
     mpf.plot(df, type="candle", style="charles", addplot=ap, ax=ax1, volume=False)
     ax1.set_title("OHLCV Chart")
