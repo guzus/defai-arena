@@ -82,7 +82,7 @@ def get_ohlcv(
           limit: {{ count: {limit} }}
         ) {{
           Block {{
-            testfield: Time(interval: {{ in: minutes, count: 5 }})
+            testfield: Time(interval: {{ in: minutes, count: 1 }})
           }}
           volume: sum(of: Trade_Amount)
           Trade {{
@@ -154,7 +154,7 @@ def get_ohlcv(
     )
 
 
-def draw_ohlcv(result: OHLCVResponse):
+def draw_ohlcv(result: OHLCVResponse, output_file: str = "ohlcv_chart.png"):
     data = {
         "Date": [trade.Block.testfield for trade in result.data.DEXTradeByTokens],
         "Open": [trade.Trade.open for trade in result.data.DEXTradeByTokens],
@@ -188,12 +188,13 @@ def draw_ohlcv(result: OHLCVResponse):
     # Adjust layout to prevent label cutoff
     plt.tight_layout()
 
-    # Show the plot
-    plt.show()
+    # Save the plot to a file instead of showing it
+    plt.savefig(output_file)
+    plt.close()  # Close the figure to free memory
 
 
 if __name__ == "__main__":
     # Example usage
     base_token = "0x4F9Fd6Be4a90f2620860d680c0d4d5Fb53d1A825"
     result = get_ohlcv(base_token)
-    draw_ohlcv(result)
+    draw_ohlcv(result)  # Will save to 'ohlcv_chart.png' by default

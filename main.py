@@ -42,7 +42,7 @@ ohlcv_cache_lock = threading.Lock()
 
 
 def update_ohlcv_cache(
-    token: str, interval=1 * 60, limit: int = 100, small_limit: int = 10
+    token: str, interval=5 * 60, limit: int = 100, small_limit: int = 10
 ):
     # Track the latest fetched timestamp per token
     last_timestamp = None

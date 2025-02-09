@@ -38,3 +38,11 @@ uv pip install -qU "langchain[openai]"
 ```bash
 uv run main.py
 ```
+
+## Draw a OHLCV chart
+
+Outputs to `ohlcv_chart.png`
+
+```bash
+uv run ohlcv.py
+```
