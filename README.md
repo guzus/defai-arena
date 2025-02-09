@@ -43,8 +43,12 @@ Example actions of each agent:
 
 | Model            | Example                                                                                     |
 | ---------------- | ------------------------------------------------------------------------------------------- |
-| Claude 3.5 Haiku | <img src="assets/claude-3.5-haiku-example.png" alt="claude-3.5-haiku-example" width="600"/> |
-| GPT 4o Mini      | <img src="assets/gpt-4o-mini-example.png" alt="gpt-4o-mini-example" width="600"/>           |
+| Claude 3.5 Haiku | <img src="assets/claude-3.5-haiku-console.png" alt="claude-3.5-haiku-console" width="600"/> |
+| GPT 4o Mini      | <img src="assets/gpt-4o-mini-console.png" alt="gpt-4o-mini-console" width="600"/>           |
+
+Example trades executed by an agent (gpt-4o-mini):
+
+<img src="assets/gpt-4o-mini-debank.png" alt="trades" width="600"/>
 
 ## Draw a OHLCV chart
 
