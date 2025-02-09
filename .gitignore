@@ -4,3 +4,4 @@ wallet_data.txt
 __pycache__/
 *.txt
 app.log
+server.env
