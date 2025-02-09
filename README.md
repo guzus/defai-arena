@@ -1,8 +1,10 @@
-# defai-arena
+# DeFAI Arena
 
 <img src="assets/defai-arena.webp" alt="defai-arena" width="400"/>
 
-Open platform for crowdsourced LLM benchmarking tailored for DeFAI applications
+**Open platform for crowdsourced LLM benchmarking tailored for DeFAI applications**
+
+Frontend repository: [github](https://github.com/golryang/defai-arena-front)
 
 ## Overview
 
