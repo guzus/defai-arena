@@ -11,12 +11,30 @@ from ohlcv import get_ohlcv, OHLCVResponse, EVM
 from datetime import datetime
 import logging
 
-logging.basicConfig(
-    level=logging.INFO,
-    filename="app.log",
-    filemode="a",
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+# Create console handler
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+console_handler.setFormatter(
+    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 )
+
+# Create file handler
+file_handler = logging.FileHandler("app.log", mode="a")
+file_handler.setLevel(logging.INFO)
+file_handler.setFormatter(
+    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+)
+
+# Get the root logger
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.INFO)
+
+# Add both handlers to the logger
+root_logger.addHandler(console_handler)
+root_logger.addHandler(file_handler)
+
+# Suppress httpx logs
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 # Global cache for OHLCV data
 ohlcv_cache = {}
