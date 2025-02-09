@@ -16,9 +16,9 @@ load_dotenv()
 def initialize_agent(llm, thread_id):
     logging.info(f"[{thread_id}]: Initializing agent...")
 
-    private_key = os.getenv(f"{thread_id}_PRIVATE_KEY")
+    mnemonic = os.getenv(f"{thread_id}_MNEMONIC")
 
-    values = {"wallet": private_key}
+    values = {"mnemonic_phrase": mnemonic}
 
     agentkit = CdpAgentkitWrapper(**values)
 
@@ -45,8 +45,7 @@ def initialize_agent(llm, thread_id):
             checkpointer=memory,
             state_modifier=(
                 "You are a helpful agent that can interact onchain using the Coinbase Developer Platform AgentKit. "
-                "You are empowered to interact onchain using your tools. If you ever need funds, you can request "
-                "them from the faucet if you are on network ID 'base-sepolia'. If not, you can provide your wallet "
+                "You are empowered to interact onchain using your tools. If you ever need funds, you can provide your wallet "
                 "details and request funds from the user. Before executing your first action, get the wallet details"
             ),
         ),
