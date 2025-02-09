@@ -75,6 +75,7 @@ def update_ohlcv_cache(token: str, interval=5 * 60, limit: int = 100):
                         )
                     else:
                         ohlcv_cache[token] = data
+                logging.info(f"Updated OHLCV cache for {token}")
         except Exception as e:
             logging.error(f"Error updating OHLCV cache: {e}")
         time.sleep(interval)
@@ -134,6 +135,8 @@ def main():
         target=update_ohlcv_cache, args=(token,), daemon=True
     )
     ohlcv_thread.start()
+
+    time.sleep(5)
 
     # Create a list to store trading threads.
     trading_threads = []
